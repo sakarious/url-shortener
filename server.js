@@ -47,15 +47,16 @@ app.get('/api/hello', function(req, res) {
 
 var ID = function () {
   // Math.random should be unique because of its seeding algorithm.
-  // Convert it to base 36 (numbers + letters), and grab the first 9 characters
-  // after the decimal.
+  // Convert it to base 9 (numbers + letters), and grab 4 characters from the 3rd index
   return Math.random().toString(9).substr(3, 4);
 };
 
 //POST /api/shorturl/new
 app.post('/api/shorturl', (req,res) => {
+  console.log(req.body)
+  //console.log(req.body.URL)
   let short_url = ID()
-  let bodyurl = req.body.URL
+  let bodyurl = req.body.url
   if (validUrl.isWebUri(bodyurl)){
     let URL = url.URL
     let urlObject = new URL(bodyurl)
@@ -68,14 +69,14 @@ app.post('/api/shorturl', (req,res) => {
       } else{
         //Check if link exists in db
         console.log(address) //Check addresss
-        Model.findOne({url: req.body.URL}, (err, URLfound) => {
+        Model.findOne({url: bodyurl}, (err, URLfound) => {
           if (err) {
             console.log(err)
             res.json({"error": "Error Processing Data"})
           } else {
             if(URLfound == null) {
               const response = new Model({
-                url: req.body.URL,
+                url: bodyurl,
                 short_url: short_url
               })
               response.save((err, doc) =>{
@@ -84,7 +85,7 @@ app.post('/api/shorturl', (req,res) => {
                 } else {
                   console.log('Saved Successfully')
                   res.json({
-                    original_url: req.body.URL,
+                    original_url: bodyurl,
                     short_url: short_url
                   })
                 }
@@ -104,40 +105,6 @@ app.post('/api/shorturl', (req,res) => {
       error: 'invalid url'
     })
   }
-  // if (bodyurl.indexOf("http://") == 0 || bodyurl.indexOf("https://") == 0){
-  //   const regex = /^https?:\/\//i
-  //   const url = bodyurl.replace(regex, '')
-  //   dns.lookup(url, (err, address, family) => {
-  //     if (err) {
-  //       res.json({
-  //         error: 'invalid url'
-  //       })
-  //     } else {
-  //       const curentId = ID()
-  //       console.log(curentId)
-  //       const response = new Model({
-  //         url: req.body.URL,
-  //         short_url: curentId
-  //       })
-  //       response.save((err, doc) =>{
-  //         if (err) {
-  //           console.log(err, 'Not Successfully saved')
-  //         } else {
-  //           console.log('Saved Successfully')
-  //           res.json({
-  //             original_url : req.body.URL,
-  //             short_url : curentId
-  //           })
-  //         }
-  //       })
-  //     }
-  //   })
-  // } else {
-  //   res.json({
-  //     error: 'invalid url'
-  //   })
-  // }
-  
 })
 
   //TO DO:
@@ -145,6 +112,8 @@ app.post('/api/shorturl', (req,res) => {
   //2. If present, redirect to original url
   //3. Invalid {"error":"No short URL found for the given input"}
 app.get('/api/shorturl/:short_url', (req, res) => {
+  console.log("Get request here")
+  console.log(req.params)
   Model.findOne({short_url: req.params.short_url}, (err, URLfound) => {
     if (err) {
       res.json({"error": "No short URL found for the given input"})
@@ -162,9 +131,3 @@ app.listen(port, function() {
   console.log(`Listening on port ${port}`);
 });
 
-
-//another one
-
-// if(validUrl.isWebUrl('https://www.facebook.com')){
-//   console.log(true)
-// }
