@@ -71,12 +71,30 @@ app.post('/api/shorturl', (req,res) => {
         Model.findOne({url: req.body.URL}, (err, URLfound) => {
           if (err) {
             console.log(err)
-            res.json({"error": "No short URL found for the given input"})
+            res.json({"error": "Error Processing Data"})
           } else {
-            res.json({
-              original_url : URLfound.url,
-              short_url : URLfound["short_url"]
-            })
+            if(URLfound == null) {
+              const response = new Model({
+                url: req.body.URL,
+                short_url: short_url
+              })
+              response.save((err, doc) =>{
+                if (err) {
+                  console.log('Not Saved Successfully')
+                } else {
+                  console.log('Saved Successfully')
+                  res.json({
+                    original_url: req.body.URL,
+                    short_url: short_url
+                  })
+                }
+              })
+            } else {
+              res.json({
+                original_url : URLfound.url,
+                short_url : URLfound["short_url"]
+              })
+            }
           }
         })
       }
